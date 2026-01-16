@@ -107,32 +107,37 @@ namespace ControlDeGastos.Controllers
                                         QueMovimiento= Gasto.TipoMovimiento
                                     }
                                     ).ToListAsync();
+            return Ok(Gastos);
 
-            
-                                    
+
+
         }
         [HttpGet("GastosporCategoria")]
-        public async Task<IActionResult> GetGastos(string Categoria)
+        public async Task<IActionResult> GetGastos(string NombreCategoria)
         {
-            var Gastos = await _context.Categoria.Join(
-                                    _context.Gastos,
-                                    Category => Category.Id,
-                                    Gasto => Gasto.CategoriaId,
-                                    (Category, Gasto) => new
-                                    {
-                                        NombreCategoria = Category.Nombre,
-                                        GastoTotal = Gasto.Importe
-                                    }
-                                    ).
+            var categoria = await _context.Categoria
+                .FirstOrDefaultAsync(c => c.Nombre == NombreCategoria);
 
-
-                                     
-
+            if (categoria == null)
             {
-
+                return NotFound("La categoria no existe");
             }
+
+            var total = await _context.Gastos
+                .Where(g => g.CategoriaId == categoria.Id)
+                .SumAsync(g => g.Importe);
+
+            return Ok(new
+            {
+                Categoria = categoria.Nombre,
+                ImporteTotal = total
+            });
         }
+
+
+
+
+    }
     }
 
 
-}
