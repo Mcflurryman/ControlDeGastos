@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using ControlDeGastos.Data;
 using Microsoft.EntityFrameworkCore;
+using System.Data;
 
 namespace ControlDeGastos.Controllers
 {
@@ -87,7 +88,7 @@ namespace ControlDeGastos.Controllers
             }
             else { Ingreso.TipoMovimiento = ingreso.TipoMovimiento; }
 
-                _context.Gastos.Add(ingreso);
+            _context.Gastos.Add(ingreso);
             await _context.SaveChangesAsync();
 
             return Ok($"Se ha introducido correctamente el ingreso: {Ingreso.Importe} Con el concepto de: {Ingreso.NombreCategoria}");
@@ -104,7 +105,7 @@ namespace ControlDeGastos.Controllers
                                         fecha = Gasto.Fecha,
                                         importe = Gasto.Importe,
                                         Concepto = Category.Nombre,
-                                        QueMovimiento= Gasto.TipoMovimiento
+                                        QueMovimiento = Gasto.TipoMovimiento
                                     }
                                     ).ToListAsync();
             return Ok(Gastos);
@@ -133,11 +134,84 @@ namespace ControlDeGastos.Controllers
                 ImporteTotal = total
             });
         }
+        [HttpGet("RestaTotal")]
+        public async Task<IActionResult> RestaTotal()
+        {
+            var ingresos = await _context.Gastos.Where(g => g.TipoMovimiento == TipoMovimiento.Ingreso)
+                 .SumAsync(g => g.Importe);
+
+            var resta = await _context.Gastos.Where(m => m.TipoMovimiento == TipoMovimiento.Gasto).SumAsync(g => g.Importe);
+
+            return Ok(resta - ingresos);
+        }
+        [HttpGet("GastosGlobalesPorFecha")]
+        public async Task<IActionResult> GastosGlobalesPorFecha(DateTime inicio, DateTime final)
+
+        {
+            var dateInicio = inicio.Date;
+            var dateFinal = final.Date.AddDays(1);
+
+            var Gastos = await _context.Gastos
+                        .Where(m => m.TipoMovimiento == TipoMovimiento.Gasto
+                        &&
+                        m.Fecha >= dateInicio
+                        &&
+                        m.Fecha < dateFinal).ToListAsync();
 
 
+            return Ok(Gastos);
 
+        }
+        [HttpGet("GastosSumadosPorFecha")]
+        public async Task<IActionResult> GastosSumadosPorFecha(DateTime inicio, DateTime final)
+
+        {
+            var dateInicio = inicio.Date;
+            var dateFinal = final.Date.AddDays(1);
+
+            var Gastos = await _context.Gastos
+                        .Where(m => m.TipoMovimiento == TipoMovimiento.Gasto
+                        &&
+                        m.Fecha >= dateInicio
+                        &&
+                        m.Fecha < dateFinal).SumAsync(g => g.Importe);
+            return Ok(Gastos);
+
+        }
+        
+        [HttpGet("IngresosSumadosPorFecha")]
+        public async Task<IActionResult> IngresosSumadosPorFecha(DateTime inicio, DateTime final)
+
+        {
+            var dateInicio = inicio.Date;
+            var dateFinal = final.Date.AddDays(1);
+
+            var Ingresos = await _context.Gastos
+                        .Where(m => m.TipoMovimiento == TipoMovimiento.Ingreso
+                        &&
+                        m.Fecha >= dateInicio
+                        &&
+                        m.Fecha < dateFinal).SumAsync(g => g.Importe);
+            return Ok(Ingresos);
+
+        }
+        [HttpGet("ControlBalanceMesActual")]
+        public async Task<IActionResult> ControlBalanceMesActual()
+
+        {
+            var totalGastos = await _context.Gastos
+                                .Where(g => g.TipoMovimiento == TipoMovimiento.Gasto)
+                                .SumAsync(g => g.Importe);
+
+            DateTime MesActual = MesActual.Date.Month;
+
+            DateTime YearActual = YearActual.Date.Year;
+
+
+            
+        }
 
     }
-    }
+}
 
 
