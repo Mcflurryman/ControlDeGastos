@@ -16,7 +16,7 @@ namespace ControlDeGastos.Controllers
         {
             _context = context;
         }
-
+        //Ingreso de gasto
         [HttpPost]
         public async Task<IActionResult> PostImporte([FromBody] DTO GastoImporte)
         {
@@ -53,6 +53,7 @@ namespace ControlDeGastos.Controllers
             return Ok($"Se ha introducido correctamente el importe: {GastoImporte.Importe} Con el concepto de: {GastoImporte.NombreCategoria}");
 
         }
+        //Ingreso de dinero
         [HttpPost("Ingreso")]
         public async Task<IActionResult> PostIngreso([FromBody] DTO Ingreso)
         {
@@ -93,6 +94,7 @@ namespace ControlDeGastos.Controllers
 
             return Ok($"Se ha introducido correctamente el ingreso: {Ingreso.Importe} Con el concepto de: {Ingreso.NombreCategoria}");
         }
+        //Gastos totales con su categoria
         [HttpGet("GastosTotales")]
         public async Task<IActionResult> GetGastos()
         {
@@ -113,6 +115,7 @@ namespace ControlDeGastos.Controllers
 
 
         }
+        //Gastos por categoria
         [HttpGet("GastosporCategoria")]
         public async Task<IActionResult> GetGastos(string NombreCategoria)
         {
@@ -134,16 +137,19 @@ namespace ControlDeGastos.Controllers
                 ImporteTotal = total
             });
         }
+        //Balance total restando ingresos y gastos
         [HttpGet("RestaTotal")]
         public async Task<IActionResult> RestaTotal()
         {
             var ingresos = await _context.Gastos.Where(g => g.TipoMovimiento == TipoMovimiento.Ingreso)
-                 .SumAsync(g => g.Importe);
+                                                .SumAsync(g => g.Importe);
 
-            var resta = await _context.Gastos.Where(m => m.TipoMovimiento == TipoMovimiento.Gasto).SumAsync(g => g.Importe);
+            var resta = await _context.Gastos.Where(m => m.TipoMovimiento == TipoMovimiento.Gasto)
+                                             .SumAsync(g => g.Importe);
 
             return Ok(resta - ingresos);
         }
+        //Gastos entre dos fechas
         [HttpGet("GastosGlobalesPorFecha")]
         public async Task<IActionResult> GastosGlobalesPorFecha(DateTime inicio, DateTime final)
 
@@ -162,6 +168,7 @@ namespace ControlDeGastos.Controllers
             return Ok(Gastos);
 
         }
+        //Gastos entre dos fechas sumados
         [HttpGet("GastosSumadosPorFecha")]
         public async Task<IActionResult> GastosSumadosPorFecha(DateTime inicio, DateTime final)
 
@@ -178,7 +185,7 @@ namespace ControlDeGastos.Controllers
             return Ok(Gastos);
 
         }
-
+        //Ingresos entre dos fechas
         [HttpGet("IngresosSumadosPorFecha")]
         public async Task<IActionResult> IngresosSumadosPorFecha(DateTime inicio, DateTime final)
 
@@ -195,6 +202,7 @@ namespace ControlDeGastos.Controllers
             return Ok(Ingresos);
 
         }
+        //Te da el balance ingreso y gasto del mes actual
         [HttpGet("ControlBalanceMesActual")]
         public async Task<IActionResult> ControlBalanceMesActual()
 
@@ -229,6 +237,8 @@ namespace ControlDeGastos.Controllers
                 Balance = balance
             });
         }
+
+        //Te da el balance ingreso y gasto entre dos fechas que le pases (pueden ser meses diferentes)
         [HttpGet("ControlBalanceMesFiltrado")]
         public async Task<IActionResult> ControlBalanceMesFiltrado(DateTime MesInicio, DateTime MesFinal)
 
