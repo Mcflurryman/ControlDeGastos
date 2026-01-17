@@ -178,7 +178,7 @@ namespace ControlDeGastos.Controllers
             return Ok(Gastos);
 
         }
-        
+
         [HttpGet("IngresosSumadosPorFecha")]
         public async Task<IActionResult> IngresosSumadosPorFecha(DateTime inicio, DateTime final)
 
@@ -199,18 +199,67 @@ namespace ControlDeGastos.Controllers
         public async Task<IActionResult> ControlBalanceMesActual()
 
         {
+
+            DateTime hoy = DateTime.Today;
+
+            DateTime InicioMesActual = new DateTime(hoy.Year, hoy.Month, 1);
+
+            DateTime InicioMesSiguiente = InicioMesActual.AddMonths(1);
             var totalGastos = await _context.Gastos
-                                .Where(g => g.TipoMovimiento == TipoMovimiento.Gasto)
-                                .SumAsync(g => g.Importe);
+                              .Where(g => g.TipoMovimiento == TipoMovimiento.Gasto
+                              &&
+                              g.Fecha >= InicioMesActual
+                              &&
+                              g.Fecha < InicioMesSiguiente)
+                              .SumAsync(g => g.Importe);
 
-            DateTime MesActual = MesActual.Date.Month;
+            var totalIngresos = await _context.Gastos
+                             .Where(g => g.TipoMovimiento == TipoMovimiento.Ingreso
+                             &&
+                             g.Fecha >= InicioMesActual
+                             &&
+                             g.Fecha < InicioMesSiguiente)
+                             .SumAsync(g => g.Importe);
 
-            DateTime YearActual = YearActual.Date.Year;
-
-
-            
+            var balance = totalIngresos - totalGastos;
+            return Ok(new
+            {
+                Gastos = totalGastos,
+                Ingresos = totalIngresos,
+                Balance = balance
+            });
         }
+        [HttpGet("ControlBalanceMesFiltrado")]
+        public async Task<IActionResult> ControlBalanceMesFiltrado(DateTime MesInicio, DateTime MesFinal)
 
+        {
+
+
+            var totalGastos = await _context.Gastos
+                              .Where(g => g.TipoMovimiento == TipoMovimiento.Gasto
+                              &&
+                              g.Fecha >= MesInicio
+                              &&
+                              g.Fecha < MesFinal)
+                              .SumAsync(g => g.Importe);
+
+            var totalIngresos = await _context.Gastos
+                             .Where(g => g.TipoMovimiento == TipoMovimiento.Ingreso
+                             &&
+                             g.Fecha >= MesInicio
+                             &&
+                             g.Fecha < MesFinal)
+                             .SumAsync(g => g.Importe);
+
+            var balance = totalIngresos - totalGastos;
+            return Ok(new
+            {
+                Gastos = totalGastos,
+                Ingresos = totalIngresos,
+                Balance = balance
+            });
+
+        }
     }
 }
 
