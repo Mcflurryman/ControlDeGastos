@@ -270,6 +270,18 @@ namespace ControlDeGastos.Controllers
             });
 
         }
+        [HttpPost("GastosAutomaticos")]
+
+        public async Task<IActionResult> GastosAutomaticos([FromBody] DTOauto GastoAuto)
+        {
+            GastoAuto = new DTOauto
+            {
+                
+            };
+            
+            return Ok (GastoAuto);
+
+        }
     }
 }
 
