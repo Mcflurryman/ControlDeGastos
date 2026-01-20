@@ -20,4 +20,5 @@ public class ControlGastosContext : DbContext
             .Property(g => g.Importe)
             .HasPrecision(10, 2);
     }
+    public DbSet<User> User { get; set; }
 }

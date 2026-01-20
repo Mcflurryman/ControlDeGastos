@@ -1,5 +1,4 @@
 ﻿
-using ControlDeGastos.Models;
 
 namespace ControlDeGastos.Models
 {
@@ -14,7 +13,9 @@ namespace ControlDeGastos.Models
             public TipoMovimiento TipoMovimiento { get; set; }
 
             public int CategoriaId { get; set; }
-                
+
+            public int UserId { get; set; }
+            public User? User { get; set; }
 
     }
 }
