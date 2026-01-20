@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ControlDeGastos.Migrations
 {
     [DbContext(typeof(ControlGastosContext))]
-    [Migration("20260119132117_AddGastosAutomaticos")]
-    partial class AddGastosAutomaticos
+    [Migration("20260120135809_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -94,9 +94,33 @@ namespace ControlDeGastos.Migrations
                     b.Property<int>("TipoMovimiento")
                         .HasColumnType("INTEGER");
 
+                    b.Property<int>("UserId")
+                        .HasColumnType("INTEGER");
+
                     b.HasKey("Id");
 
+                    b.HasIndex("UserId");
+
                     b.ToTable("Gastos");
+                });
+
+            modelBuilder.Entity("ControlDeGastos.Models.User", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("PasswordHash")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("User");
                 });
 
             modelBuilder.Entity("ControlDeGastos.Models.GastoAutomaticoModel", b =>
@@ -108,6 +132,17 @@ namespace ControlDeGastos.Migrations
                         .IsRequired();
 
                     b.Navigation("Categoria");
+                });
+
+            modelBuilder.Entity("ControlDeGastos.Models.GastoModel", b =>
+                {
+                    b.HasOne("ControlDeGastos.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 #pragma warning restore 612, 618
         }
