@@ -3,6 +3,7 @@ using System;
 using ControlDeGastos.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ControlDeGastos.Migrations
 {
     [DbContext(typeof(ControlGastosContext))]
-    partial class ControlGastosContextModelSnapshot : ModelSnapshot
+    [Migration("20260121121926_AddUserAndOrderToCategoria")]
+    partial class AddUserAndOrderToCategoria
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.0");
