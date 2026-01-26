@@ -12,21 +12,26 @@ namespace ControlDeGastos.Controllers
     public class GastosController : ControllerBase
     {
         private readonly ControlGastosContext _context;
-        public GastosController(ControlGastosContext context)
+        private readonly GetCurrentUser _userId;
+        public GastosController(ControlGastosContext context, GetCurrentUser userId)
         {
             _context = context;
+            _userId = userId;
         }
         //Ingreso de gasto
         [HttpPost]
         public async Task<IActionResult> PostImporte([FromBody] DTO GastoImporte)
         {
-            var Categoria = await _context.Categoria.FirstOrDefaultAsync(c => c.Nombre == GastoImporte.NombreCategoria);
+           int userId =  _userId.GetCurrentUserID();
+            var Categoria = await _context.Categoria.FirstOrDefaultAsync(c => c.Nombre == GastoImporte.NombreCategoria && c.UserId == userId);
 
             if (Categoria == null)
             {
                 Categoria = new CategoriaModel
                 {
-                    Nombre = GastoImporte.NombreCategoria
+                    Nombre = GastoImporte.NombreCategoria,
+                    UserId = userId
+
                 };
 
                 _context.Categoria.Add(Categoria);
@@ -42,6 +47,7 @@ namespace ControlDeGastos.Controllers
                 Importe = GastoImporte.Importe,
                 Fecha = DateTime.Today,
                 Concepto = GastoImporte.Concepto,
+                UserId = userId,
                 CategoriaId = Categoria.Id
 
 
@@ -57,13 +63,16 @@ namespace ControlDeGastos.Controllers
         [HttpPost("Ingreso")]
         public async Task<IActionResult> PostIngreso([FromBody] DTO Ingreso)
         {
-            var CategoriaIngreso = await _context.Categoria.FirstOrDefaultAsync(c => c.Nombre == Ingreso.NombreCategoria);
+            int userId = _userId.GetCurrentUserID();
+            var CategoriaIngreso = await _context.Categoria.FirstOrDefaultAsync(c => c.Nombre == Ingreso.NombreCategoria && c.UserId == userId);
 
             if (CategoriaIngreso == null)
             {
                 CategoriaIngreso = new CategoriaModel
                 {
-                    Nombre = Ingreso.NombreCategoria
+                    Nombre = Ingreso.NombreCategoria,
+                    UserId = userId
+
                 };
 
                 _context.Categoria.Add(CategoriaIngreso);
@@ -79,6 +88,7 @@ namespace ControlDeGastos.Controllers
                 Fecha = DateTime.Today,
                 Concepto = Ingreso.Concepto,
                 CategoriaId = CategoriaIngreso.Id,
+                UserId = userId,
                 TipoMovimiento = Ingreso.TipoMovimiento
 
 
@@ -98,16 +108,19 @@ namespace ControlDeGastos.Controllers
         [HttpGet("GastosTotales")]
         public async Task<IActionResult> GetGastos()
         {
+            int userId = _userId.GetCurrentUserID();
             var Gastos = await _context.Categoria.Join(
                                     _context.Gastos,
                                     Category => Category.Id,
                                     Gasto => Gasto.CategoriaId,
                                     (Category, Gasto) => new
+                                    {Category, Gasto}).Where(u => u.Gasto.UserId == userId && u.Gasto.TipoMovimiento == TipoMovimiento.Gasto)
+                                    .Select(g => new
                                     {
-                                        fecha = Gasto.Fecha,
-                                        importe = Gasto.Importe,
-                                        Concepto = Category.Nombre,
-                                        QueMovimiento = Gasto.TipoMovimiento
+                                        fecha = g.Gasto.Fecha,
+                                        importe = g.Gasto.Importe,
+                                        Concepto = g.Category.Nombre,
+                                        QueMovimiento = g.Gasto.TipoMovimiento
                                     }
                                     ).ToListAsync();
             return Ok(Gastos);
@@ -119,8 +132,9 @@ namespace ControlDeGastos.Controllers
         [HttpGet("GastosporCategoria")]
         public async Task<IActionResult> GetGastos(string NombreCategoria)
         {
+            int userId = _userId.GetCurrentUserID();
             var categoria = await _context.Categoria
-                .FirstOrDefaultAsync(c => c.Nombre == NombreCategoria);
+                .FirstOrDefaultAsync(c => c.Nombre == NombreCategoria && c.UserId == userId);
 
             if (categoria == null)
             {
@@ -141,10 +155,12 @@ namespace ControlDeGastos.Controllers
         [HttpGet("RestaTotal")]
         public async Task<IActionResult> RestaTotal()
         {
-            var ingresos = await _context.Gastos.Where(g => g.TipoMovimiento == TipoMovimiento.Ingreso)
+            int userId = _userId.GetCurrentUserID();
+
+            var ingresos = await _context.Gastos.Where(g =>g.UserId == userId && g.TipoMovimiento == TipoMovimiento.Ingreso)
                                                 .SumAsync(g => g.Importe);
 
-            var resta = await _context.Gastos.Where(m => m.TipoMovimiento == TipoMovimiento.Gasto)
+            var resta = await _context.Gastos.Where(m => m.UserId == userId && m.TipoMovimiento == TipoMovimiento.Gasto)
                                              .SumAsync(g => g.Importe);
 
             return Ok(resta - ingresos);

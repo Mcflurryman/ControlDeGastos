@@ -1,4 +1,5 @@
 using ControlDeGastos.Data;
+using ControlDeGastos.Models;
 using Microsoft.EntityFrameworkCore;
 using System;
 
@@ -17,6 +18,7 @@ builder.Services.AddSwaggerGen();
 //    ));
 builder.Services.AddDbContext<ControlGastosContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddScoped<GetCurrentUser>();
 
 var app = builder.Build();
 
